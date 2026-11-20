@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>돌봄이음 - 순천시 맞춤형 긴급 돌봄 네트워크</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Gothic A1 & Gaegu) -->
+    <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gothic+A1:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pinkTheme: {
+                            50: '#FFF0F3',
+                            100: '#FFE4E8',
+                            200: '#FFB6C1',
+                            300: '#FF9EB1',
+                            400: '#FF8EA7',
+                            500: '#FF5C83',
+                            600: '#E63963',
+                            700: '#C4204B'
+                        },
+                        warmBg: '#FFFDF9',
+                        softBrown: '#6E5D53',
+                        softGreen: '#52B788'
+                    },
+                    fontFamily: {
+                        sans: ['Gothic A1', 'sans-serif'],
+                        cute: ['Gaegu', 'cursive']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Gothic A1', sans-serif;
+            background-color: #FFFDF9;
+            color: #4A3E3D;
+        }
+        .font-cute {
+            font-family: 'Gaegu', cursive;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FFF0F3;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #FFB6C1;
+            border-radius: 9999px;
+        }
+        .cute-shadow {
+            box-shadow: 0 10px 25px -5px rgba(255, 142, 167, 0.2);
+        }
+        .pulse-pink {
+            animation: pulse-pink-border 2s infinite;
+        }
+        @keyframes pulse-pink-border {
+            0%, 100% { border-color: rgba(255, 142, 167, 0.9); }
+            50% { border-color: rgba(255, 182, 193, 0.3); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-warmBg text-gray-800 antialiased pb-20 md:pb-10">
+
+    <!-- Push Notification Floating Toast -->
+    <div id="toastNotification" class="fixed top-4 right-4 left-4 sm:left-auto z-50 transform translate-y-[-160%] transition-all duration-300 max-w-sm w-full bg-white border-2 border-pinkTheme-400 rounded-3xl p-4 shadow-2xl flex items-start gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-pinkTheme-100 flex items-center justify-center flex-shrink-0 text-pinkTheme-500 text-lg">
+            <i class="fa-solid fa-bell animate-bounce"></i>
+        </div>
+        <div class="flex-1">
+            <div class="flex items-center justify-between">
+                <span class="font-bold text-xs text-pinkTheme-600">[돌봄이음 실시간 알림]</span>
+                <span class="text-[10px] text-gray-400" id="toastTime">방금 전</span>
+            </div>
+            <p id="toastMessage" class="text-xs text-gray-800 font-medium mt-1 leading-snug">알림 내용이 들어갑니다.</p>
+        </div>
+        <button onclick="hideToast()" class="text-gray-400 hover:text-gray-600 text-sm">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-pinkTheme-100 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6">
+            <div class="flex items-center justify-between h-16 sm:h-20">
+                <!-- Logo -->
+                <div class="flex items-center gap-2.5 cursor-pointer" onclick="switchTab('home')">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-tr from-pinkTheme-400 to-pinkTheme-500 rounded-2xl flex items-center justify-center text-white shadow-md transform rotate-2 hover:rotate-0 transition-transform">
+                        <i class="fa-solid fa-heart-circle-check text-xl sm:text-2xl"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-cute text-2xl sm:text-3xl font-bold text-pinkTheme-500 tracking-wide">돌봄이음</span>
+                            <span class="bg-pinkTheme-100 text-pinkTheme-600 text-[10px] font-extrabold px-2 py-0.5 rounded-full">순천시</span>
+                        </div>
+                        <p class="text-[10px] sm:text-[11px] text-softBrown font-medium hidden sm:block">순천시 방과 후 & 긴급 돌봄 스마트 연결 네트워크</p>
+                    </div>
+                </div>
+
+                <!-- Desktop Navigation Tabs -->
+                <nav class="hidden md:flex items-center gap-1 bg-pinkTheme-50 p-1.5 rounded-2xl border border-pinkTheme-100">
+                    <button onclick="switchTab('home')" id="nav-home" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-pinkTheme-600 bg-white shadow-sm">
+                        <i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i>맞춤 추천
+                    </button>
+                    <button onclick="switchTab('centers')" id="nav-centers" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-gray-600 hover:text-pinkTheme-500">
+                        <i class="fa-solid fa-building-user mr-1.5"></i>기관 비교 & 지도
+                    </button>
+                    <button onclick="switchTab('coop')" id="nav-coop" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-gray-600 hover:text-pinkTheme-500">
+                        <i class="fa-solid fa-handshake-angle mr-1.5"></i>이웃 품앗이
+                    </button>
+                    <button onclick="switchTab('alerts')" id="nav-alerts" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-gray-600 hover:text-pinkTheme-500 relative">
+                        <i class="fa-solid fa-bell mr-1.5"></i>알림 센터
+                        <span id="badgeAlertCount" class="absolute -top-1 -right-1 bg-pinkTheme-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">3</span>
+                    </button>
+                    <button onclick="switchTab('profile')" id="nav-profile" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-gray-600 hover:text-pinkTheme-500">
+                        <i class="fa-solid fa-child-reaching mr-1.5"></i>아이 프로필
+                    </button>
+                </nav>
+
+                <!-- Trigger Test Alert Button -->
+                <div class="flex items-center gap-2">
+                    <button onclick="triggerSimulatedAlert()" class="bg-pinkTheme-100 hover:bg-pinkTheme-200 text-pinkTheme-600 text-xs font-bold px-3 py-2 rounded-xl border border-pinkTheme-200 transition flex items-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-vial text-pinkTheme-500"></i>
+                        <span class="hidden sm:inline">알림 테스트</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Bottom Nav Bar -->
+        <div class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-pinkTheme-100 py-2 px-2 flex justify-around shadow-lg">
+            <button onclick="switchTab('home')" id="mnav-home" class="flex flex-col items-center text-pinkTheme-500 font-bold text-[10px]">
+                <i class="fa-solid fa-wand-magic-sparkles text-base mb-0.5"></i>추천
+            </button>
+            <button onclick="switchTab('centers')" id="mnav-centers" class="flex flex-col items-center text-gray-400 text-[10px]">
+                <i class="fa-solid fa-building-user text-base mb-0.5"></i>기관비교
+            </button>
+            <button onclick="switchTab('coop')" id="mnav-coop" class="flex flex-col items-center text-gray-400 text-[10px]">
+                <i class="fa-solid fa-handshake-angle text-base mb-0.5"></i>이웃품앗이
+            </button>
+            <button onclick="switchTab('alerts')" id="mnav-alerts" class="flex flex-col items-center text-gray-400 text-[10px] relative">
+                <i class="fa-solid fa-bell text-base mb-0.5"></i>알림
+                <span id="mBadgeAlertCount" class="absolute top-0 right-3 bg-pinkTheme-500 text-white text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold">3</span>
+            </button>
+            <button onclick="switchTab('profile')" id="mnav-profile" class="flex flex-col items-center text-gray-400 text-[10px]">
+                <i class="fa-solid fa-child-reaching text-base mb-0.5"></i>프로필
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 pt-5 flex-1 w-full">
+
+        <!-- Hero Intro Card -->
+        <section class="bg-gradient-to-r from-pinkTheme-100 via-pinkTheme-50 to-orange-50 rounded-3xl p-5 sm:p-6 mb-6 border border-pinkTheme-200/80 relative overflow-hidden cute-shadow">
+            <div class="max-w-2xl relative z-10">
+                <div class="flex flex-wrap items-center gap-2 mb-2">
+                    <span class="bg-white/90 border border-pinkTheme-200 text-pinkTheme-600 text-[11px] font-bold px-3 py-0.5 rounded-full shadow-sm">
+                        <i class="fa-solid fa-sparkles text-pinkTheme-400 mr-1"></i>순천시 고교 지역사회 문제해결 프로젝트
+                    </span>
+                    <span class="bg-pinkTheme-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">사회복지 진로 연계</span>
+                </div>
+                <h1 class="text-xl sm:text-2xl font-extrabold text-gray-800 leading-tight mb-2">
+                    갑작스러운 야근에도 안심!<br>
+                    <span class="text-pinkTheme-500 font-cute text-2xl sm:text-3xl">순천시 16개 실제 돌봄 기관 & 이웃</span>이 함께합니다
+                </h1>
+                <p class="text-xs text-gray-600 leading-relaxed">
+                    복잡한 서류 없이 내 아이 조건(나이, 동네, 필요시간)에 꼭 맞는 방과후/긴급 돌봄 자리를 빠르게 찾고 신청하세요.
+                </p>
+            </div>
+            <div class="absolute -right-4 -bottom-6 opacity-20 text-pinkTheme-400 text-8xl pointer-events-none">
+                <i class="fa-solid fa-heart-circle-check"></i>
+            </div>
+        </section>
+
+        <!-- TAB 1: 🏠 홈 (맞춤 추천 및 스마트 매칭) -->
+        <section id="tab-home" class="tab-content space-y-6">
+            
+            <!-- Real-time Summary Dashboard -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="bg-white p-3.5 rounded-2xl border border-pinkTheme-100 cute-shadow text-center">
+                    <span class="text-[11px] text-gray-500 font-medium block">순천시 실제 돌봄 기관</span>
+                    <span class="text-lg font-black text-pinkTheme-600 mt-0.5 block">16개소 데이터</span>
+                </div>
+                <div class="bg-white p-3.5 rounded-2xl border border-pinkTheme-100 cute-shadow text-center">
+                    <span class="text-[11px] text-gray-500 font-medium block">오늘 신청 가능 빈자리</span>
+                    <span class="text-lg font-black text-emerald-600 mt-0.5 block" id="summaryTotalSeats">18석</span>
+                </div>
+                <div class="bg-white p-3.5 rounded-2xl border border-pinkTheme-100 cute-shadow text-center">
+                    <span class="text-[11px] text-gray-500 font-medium block">이웃 품앗이 모임</span>
+                    <span class="text-lg font-black text-pinkTheme-500 mt-0.5 block">3개 모임</span>
+                </div>
+                <div class="bg-white p-3.5 rounded-2xl border border-pinkTheme-100 cute-shadow text-center">
+                    <span class="text-[11px] text-gray-500 font-medium block">평균 신청 승인시간</span>
+                    <span class="text-lg font-black text-orange-500 mt-0.5 block">약 10분</span>
+                </div>
+            </div>
+
+            <!-- CORE FEATURE: 내 아이 맞춤 추천 스마트 Wizard -->
+            <div class="bg-white rounded-3xl p-5 sm:p-6 border-2 border-pinkTheme-300 cute-shadow pulse-pink">
+                <div class="flex items-center justify-between border-b border-pinkTheme-100 pb-3 mb-4">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full bg-pinkTheme-100 text-pinkTheme-500 flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        </div>
+                        <h2 class="text-base sm:text-lg font-bold text-gray-800">내 아이 맞춤 돌봄 스마트 매칭</h2>
+                    </div>
+                    <span class="text-[11px] bg-pinkTheme-50 text-pinkTheme-600 font-bold px-2.5 py-1 rounded-full border border-pinkTheme-200">
+                        <i class="fa-solid fa-sliders mr-1"></i>조건 자동 계산
+                    </span>
+                </div>
+
+                <!-- Wizard Controls -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">1. 자녀 연령 선택</label>
+                        <select id="wizAgeSelect" onchange="runSmartMatching()" class="w-full bg-pinkTheme-50/60 border border-pinkTheme-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-pinkTheme-400">
+                            <option value="all">전체 연령대</option>
+                            <option value="infant">영유아 (만 0세 ~ 5세)</option>
+                            <option value="elem_low" selected>초등 저학년 (1~3학년)</option>
+                            <option value="elem_high">초등 고학년 (4~6학년)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">2. 순천시 거주/학교 동네</label>
+                        <select id="wizDistrictSelect" onchange="runSmartMatching()" class="w-full bg-pinkTheme-50/60 border border-pinkTheme-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-pinkTheme-400">
+                            <option value="all">순천시 전체 지역</option>
+                            <option value="가곡동" selected>가곡동 / 원가곡</option>
+                            <option value="석현동">석현동 / 향림</option>
+                            <option value="용당동">용당동 / 삼산</option>
+                            <option value="조곡동">조곡동 / 순천역</option>
+                            <option value="생목동">생목동 / 덕연</option>
+                            <option value="연향동">연향동 / 배들</option>
+                            <option value="신대지구">해룡면 신대지구</option>
+                            <option value="산단">산단 / 서면</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">3. 희망 돌봄 시간대</label>
+                        <select id="wizTimeSelect" onchange="runSmartMatching()" class="w-full bg-pinkTheme-50/60 border border-pinkTheme-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-pinkTheme-400">
+                            <option value="all">전체 시간대</option>
+                            <option value="afterschool" selected>방과후 상시 (13:00~19:00)</option>
+                            <option value="emergency">긴급/저녁 야간 (18:00~21:00)</option>
+                            <option value="weekend">주말/방학 돌봄</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Profile Sync Bar -->
+                <div class="flex items-center justify-between text-xs bg-pinkTheme-50/50 p-2.5 rounded-xl border border-pinkTheme-100 mb-4">
+                    <span class="text-softBrown" id="profileSyncText">
+                        <i class="fa-solid fa-user-check text-pinkTheme-500 mr-1"></i>내 아이 프로필(<strong>김민준 / 초등저학년 / 가곡동</strong>) 정보가 자동 반영되어 있습니다.
+                    </span>
+                    <button onclick="switchTab('profile')" class="text-pinkTheme-600 font-bold hover:underline text-[11px]">프로필 수정</button>
+                </div>
+
+                <!-- Match Results Container -->
+                <div>
+                    <h3 class="text-xs font-bold text-gray-500 mb-2 flex items-center justify-between">
+                        <span>조건에 딱 맞는 추천 기관 및 품앗이</span>
+                        <span id="wizResultCount" class="text-pinkTheme-600 font-black">0개 기관 검색됨</span>
+                    </h3>
+                    <div id="wizResultContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <!-- Recommended cards injected via JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: 🏫 돌봄 기관 비교 & 인터랙티브 지도 -->
+        <section id="tab-centers" class="tab-content hidden space-y-5">
+            
+            <!-- View Mode Switcher & Search Bar -->
+            <div class="bg-white rounded-3xl p-5 border border-pinkTheme-100 cute-shadow space-y-3">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div>
+                        <h2 class="text-base font-bold text-gray-800">순천시 전체 16개 실제 돌봄 기관 목록</h2>
+                        <p class="text-xs text-gray-500">출처: 아동권리보장원, 순천시청, 공공데이터포털 연계 실제 주소 데이터</p>
+                    </div>
+
+                    <!-- Toggle View Mode (List vs Map) -->
+                    <div class="flex bg-pinkTheme-50 p-1 rounded-2xl border border-pinkTheme-200 w-full sm:w-auto">
+                        <button onclick="setViewMode('list')" id="btnViewList" class="flex-1 sm:flex-none px-4 py-1.5 rounded-xl text-xs font-bold bg-white text-pinkTheme-600 shadow-sm">
+                            <i class="fa-solid fa-list mr-1"></i>리스트 보기
+                        </button>
+                        <button onclick="setViewMode('map')" id="btnViewMap" class="flex-1 sm:flex-none px-4 py-1.5 rounded-xl text-xs font-bold text-gray-600 hover:text-pinkTheme-500">
+                            <i class="fa-solid fa-map-location-dot mr-1"></i>순천시 지도 보기
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filters & Search -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 border-t border-pinkTheme-100 text-xs">
+                    <div class="relative">
+                        <input type="text" id="centerSearchInput" onkeyup="filterCentersList()" placeholder="기관명, 도로명 주소 검색..." class="w-full bg-pinkTheme-50/50 border border-pinkTheme-200 rounded-xl pl-8 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-pinkTheme-300">
+                        <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-pinkTheme-400"></i>
+                    </div>
+
+                    <select id="typeFilterSelect" onchange="filterCentersList()" class="bg-pinkTheme-50/50 border border-pinkTheme-200 rounded-xl px-3 py-2 font-semibold">
+                        <option value="all">전체 기관 유형</option>
+                        <option value="together">다함께돌봄센터</option>
+                        <option value="child_center">지역아동센터</option>
+                        <option value="coop">이웃 품앗이</option>
+                    </select>
+
+                    <select id="seatFilterSelect" onchange="filterCentersList()" class="bg-pinkTheme-50/50 border border-pinkTheme-200 rounded-xl px-3 py-2 font-semibold">
+                        <option value="all">빈자리 상태 전체</option>
+                        <option value="available">즉시 신청 가능 (빈자리 > 0)</option>
+                        <option value="full">마감 (대기 신청)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- VIEW 1: Cards Grid List -->
+            <div id="viewListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Injected via JS -->
+            </div>
+
+            <!-- VIEW 2: Interactive Suncheon Visual Map -->
+            <div id="viewMapContainer" class="hidden bg-white p-5 rounded-3xl border border-pinkTheme-100 cute-shadow space-y-3">
+                <div class="flex justify-between items-center text-xs text-gray-600">
+                    <span class="font-bold text-pinkTheme-600"><i class="fa-solid fa-location-dot mr-1"></i>순천시 돌봄 기관 시각적 지도</span>
+                    <span>마커를 클릭하면 상세 정보 팝업이 표시됩니다.</span>
+                </div>
+                
+                <!-- Mock Map Box -->
+                <div class="relative w-full h-[450px] bg-gradient-to-br from-emerald-50 via-pinkTheme-50/30 to-sky-50 rounded-2xl border-2 border-pinkTheme-200 overflow-hidden flex items-center justify-center">
+                    <!-- Map Background Watermark / Road Grid lines -->
+                    <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#ff5c83_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                    <div class="absolute text-center text-gray-300 font-bold text-4xl pointer-events-none select-none">
+                        SUNCHEON CITY CARE MAP
+                    </div>
+
+                    <!-- Map Markers injected dynamically via JS -->
+                    <div id="mapMarkersArea" class="absolute inset-0">
+                        <!-- Markers -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: 🤝 이웃 품앗이 돌봄 매칭 -->
+        <section id="tab-coop" class="tab-content hidden space-y-5">
+            <div class="bg-gradient-to-br from-pinkTheme-50 to-orange-50 rounded-3xl p-5 sm:p-6 border border-pinkTheme-200 cute-shadow">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-pinkTheme-200/60 pb-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="bg-pinkTheme-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">순천시 학부모 신뢰 인증</span>
+                            <h2 class="text-base sm:text-lg font-bold text-gray-800">이웃 부모 품앗이 돌봄 모임</h2>
+                        </div>
+                        <p class="text-xs text-gray-600 mt-1">기관 이용이 여의치 않을 때, 가까운 이웃 학부모들과 교대 돌봄을 나눠보세요.</p>
+                    </div>
+                    <button onclick="openCoopCreateModal()" class="bg-pinkTheme-500 hover:bg-pinkTheme-600 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center gap-1.5 whitespace-nowrap">
+                        <i class="fa-solid fa-plus"></i> 새 품앗이 모임 등록
+                    </button>
+                </div>
+
+                <!-- Trust badging bar -->
+                <div class="grid grid-cols-3 gap-2 mt-4 text-center">
+                    <div class="bg-white p-2.5 rounded-xl border border-pinkTheme-100">
+                        <i class="fa-solid fa-id-card text-pinkTheme-500 text-base mb-1"></i>
+                        <span class="text-[11px] font-bold text-gray-700 block">순천시 주민 실명 인증</span>
+                    </div>
+                    <div class="bg-white p-2.5 rounded-xl border border-pinkTheme-100">
+                        <i class="fa-solid fa-clock-rotate-left text-orange-500 text-base mb-1"></i>
+                        <span class="text-[11px] font-bold text-gray-700 block">돌봄 시간 품앗이 적립</span>
+                    </div>
+                    <div class="bg-white p-2.5 rounded-xl border border-pinkTheme-100">
+                        <i class="fa-solid fa-shield-heart text-purple-500 text-base mb-1"></i>
+                        <span class="text-[11px] font-bold text-gray-700 block">시민 안심 배상보험 적용</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Coop Group Cards List -->
+            <div id="coopGroupContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Injected via JS -->
+            </div>
+        </section>
+
+        <!-- TAB 4: 🔔 알림 센터 -->
+        <section id="tab-alerts" class="tab-content hidden space-y-5">
+            <div class="bg-white rounded-3xl p-5 border border-pinkTheme-100 cute-shadow">
+                <div class="flex items-center justify-between border-b border-pinkTheme-100 pb-3 mb-4">
+                    <div>
+                        <h2 class="text-base sm:text-lg font-bold text-gray-800">실시간 돌봄 알림 센터</h2>
+                        <p class="text-xs text-gray-500">기관 신청 승인 결과, 빈자리 발생 알림, 대기 순번 변경 소식을 안내합니다.</p>
+                    </div>
+                    <button onclick="clearAllNotifications()" class="text-xs text-gray-400 hover:text-pinkTheme-600 underline">알림 내역 비우기</button>
+                </div>
+
+                <!-- Notification History Feed -->
+                <div id="alertHistoryList" class="space-y-3">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 5: 👶 내 아이 프로필 설정 -->
+        <section id="tab-profile" class="tab-content hidden space-y-5">
+            <div class="bg-white rounded-3xl p-5 sm:p-6 border border-pinkTheme-100 cute-shadow">
+                <div class="flex items-center gap-3 border-b border-pinkTheme-100 pb-4 mb-4">
+                    <div class="w-12 h-12 bg-pinkTheme-100 text-pinkTheme-500 rounded-2xl flex items-center justify-center text-xl font-bold">
+                        <i class="fa-solid fa-child"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base sm:text-lg font-bold text-gray-800">내 아이 프로필 및 매칭 조건</h2>
+                        <p class="text-xs text-gray-500">저장된 아이 프로필 정보는 매칭 추천 시 자동으로 우선 반영됩니다.</p>
+                    </div>
+                </div>
+
+                <form onsubmit="saveChildProfile(event)" class="space-y-4 text-xs">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block font-bold text-gray-700 mb-1">아이 이름</label>
+                            <input type="text" id="profName" required value="김민준" class="w-full bg-pinkTheme-50/50 border border-pinkTheme-200 rounded-xl p-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-pinkTheme-300">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-gray-700 mb-1">연령대 구분</label>
+                            <select id="profAgeGroup" class="w-full bg-pinkTheme-50/50 border border-pinkTheme-200 rounded-xl p-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-pinkTheme-300">
+                                <option value="infant">영유아 (만 0~5세)</option>
+                                <option value="elem_low" selected>초등 저학년 (1~3학년)</option>
+                                <option value="elem_high">초등 고학년 (4~6학년)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-gray-700 mb-1">다니는 학교 / 유치원명</label>
+                            <input type="text" id="profSchool" value="순천 가곡초등학교" class="w-full bg-pinkTheme-50/50 border border-pinkTheme-200 rounded-xl p-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-pinkTheme-300">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-gray-700 mb-1">거주 / 활동 동네</label>
+                            <select id="profDistrict" class="w-full bg-pinkTheme-50/50 border border-pinkTheme-200 rounded-xl p-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-pinkTheme-300">
+                                <option value="가곡동" selected>가곡동 / 원가곡</option>
+                                <option value="석현동">석현동 / 향림</option>
+                                <option value="용당동">용당동 / 삼산</option>
+                                <option value="조곡동">조곡동 / 순천역</option>
+                                <option value="생목동">생목동 / 덕연</option>
+                                <option value="연향동">연향동 / 배들</option>
+                                <option value="신대지구">해룡면 신대지구</option>
+                                <option value="산단">산단 / 서면</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">주로 필요한 돌봄 시간대</label>
+                        <select id="profTimeGroup" class="w-full bg-pinkTheme-50/50 border border-pinkTheme-200 rounded-xl p-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-pinkTheme-300">
+                            <option value="afterschool" selected>방과후 상시 (13:00~19:00)</option>
+                            <option value="emergency">긴급/저녁 야간 (18:00~21:00)</option>
+                            <option value="weekend">주말/방학 돌봄</option>
+                        </select>
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="submit" class="w-full bg-pinkTheme-500 hover:bg-pinkTheme-600 text-white font-bold py-3 rounded-xl transition shadow text-xs">
+                            <i class="fa-solid fa-floppy-disk mr-1"></i> 아이 프로필 저장 및 자동 매칭 연동
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal: 기관 상세 정보 & 후기 관리 Modal -->
+    <div id="centerDetailModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-pinkTheme-200 cute-shadow p-5 sm:p-6 relative">
+            <button onclick="closeModal('centerDetailModal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div id="modalDetailContent">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: 신청 & 대기 등록 Modal -->
+    <div id="applyModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full border border-pinkTheme-200 cute-shadow p-5 sm:p-6 relative">
+            <button onclick="closeModal('applyModal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div id="applyModalContent">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: 품앗이 모임 등록 Modal -->
+    <div id="coopCreateModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full border border-pinkTheme-200 cute-shadow p-5 sm:p-6 relative">
+            <button onclick="closeModal('coopCreateModal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="text-base font-bold text-gray-800 mb-1">새 이웃 품앗이 돌봄 모임 만들기</h3>
+            <p class="text-xs text-gray-500 mb-4">순천시 동네 이웃 학부모님들과 돌봄 품앗이를 시작합니다.</p>
+
+            <form onsubmit="submitNewCoop(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">모임 제목</label>
+                    <input type="text" id="coopTitleInput" required placeholder="예: 가곡동 초등1학년 등하원 & 오피스 거실 돌봄" class="w-full bg-pinkTheme-50/50 border border-pinkTheme-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-pinkTheme-300">
+                </div>
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">활동 아파트 / 동네</label>
+                    <input type="text" id="coopLocInput" required placeholder="예: 가곡동 양우내안애 아파트 102동" class="w-full bg-pinkTheme-50/50 border border-pinkTheme-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-pinkTheme-300">
+                </div>
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">대상 자녀 연령대</label>
+                    <input type="text" id="coopAgeInput" required placeholder="예: 초등 1~2학년 (8~9세)" class="w-full bg-pinkTheme-50/50 border border-pinkTheme-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-pinkTheme-300">
+                </div>
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">모임 상세 설명</label>
+                    <textarea id="coopDescInput" rows="3" required placeholder="퇴근 시까지 함께 아이를 돌봐주실 이웃 부모님 구합니다." class="w-full bg-pinkTheme-50/50 border border-pinkTheme-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-pinkTheme-300"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-pinkTheme-500 hover:bg-pinkTheme-600 text-white font-bold py-3 rounded-xl text-xs transition mt-2">
+                    품앗이 모임 등록 완료
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-12 border-t border-pinkTheme-100 bg-white/80 py-6">
+        <div class="max-w-6xl mx-auto px-4 text-center text-xs text-softBrown space-y-2">
+            <div class="flex items-center justify-center gap-1.5 font-bold text-pinkTheme-600">
+                <i class="fa-solid fa-heart"></i>
+                <span>순천시 고등학생 지역사회 문제해결 프로젝트 (사회복지 분야)</span>
+            </div>
+            <p class="max-w-2xl mx-auto text-[11px] leading-relaxed text-gray-500">
+                <strong>[정보 데이터 출처]</strong> 본 앱에 활용된 기관 주소 데이터는 ① 아동권리보장원 지역아동센터 플랫폼 ② 순천시청 공식 홈페이지 ③ 공공데이터포털 자료를 기반으로 한 순천시 실제 16개 돌봄 기관 정보입니다.
+            </p>
+            <p class="text-[10px] text-gray-400">© 2026 Dolbom Ium Platform. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- JS Application Core Logic -->
+    <script>
+        // 16 Real Care Centers in Suncheon Data Array
+        const initialCenters = [
+            {
+                id: 1,
+                name: "순천시 양우내안애 다함께돌봄센터",
+                type: "together",
+                typeLabel: "다함께돌봄센터",
+                district: "가곡동",
+                districtLabel: "가곡동 / 원가곡",
+                address: "전라남도 순천시 원가곡길 75",
+                seats: 2,
+                maxSeats: 20,
+                ageGroup: "elem_low",
+                ageLabel: "만 6세 ~ 12세 (초등전학년)",
+                hours: "평일 10:00 ~ 19:00 (학기중 13:00~)",
+                timeCategory: "afterschool",
+                cost: "무료 (간식비 실비 별도)",
+                meal: "매일 영양 간식 제공",
+                teachers: 4,
+                programs: ["방과후 과제지도", "창의 미술", "보드게임교실", "급식제공"],
+                mapPos: { top: "25%", left: "38%" },
+                rating: 4.9,
+                reviews: [
+                    { id: 101, author: "가곡맘", text: "선생님들이 너무 친절하고 시설이 깨끗해요!", stars: 5 },
+                    { id: 102, author: "민준아빠", text: "퇴근 시간에 안전하게 아이를 믿고 맡길 수 있어서 큰 도움이 됩니다.", stars: 5 }
+                ]
+            },
+            {
+                id: 2,
+                name: "순천 신대 다함께돌봄센터",
+                type: "together",
+                typeLabel: "다함께돌봄센터",
+                district: "신대지구",
+                districtLabel: "해룡면 신대지구",
+                address: "전라남도 순천시 해룡면 신대리",
+                seats: 1,
+                maxSeats: 25,
+                ageGroup: "elem_low",
+                ageLabel: "만 6세 ~ 12세",
+                hours: "평일 09:00 ~ 20:00 (연장돌봄 가능)",
+                timeCategory: "emergency",
+                cost: "월 5만원 (간식비 포함)",
+                meal: "간식 및 석식 선택 제공",
+                teachers: 5,
+                programs: ["로봇 코딩", "영어 동화", "체육 활동", "셔틀버스 연계"],
+                mapPos: { top: "72%", left: "75%" },
+                rating: 4.8,
+                reviews: [
+                    { id: 103, author: "신대맘3층", text: "신대지구에 꼭 필요했던 돌봄센터라 정말 유용해요.", stars: 5 }
+                ]
+            },
+            {
+                id: 3,
+                name: "향림지역아동센터",
+                type: "child_center",
+                typeLabel: "지역아동센터",
+                district: "석현동",
+                districtLabel: "석현동 / 향림",
+                address: "전라남도 순천시 석현길 63",
+                seats: 0,
+                maxSeats: 29,
+                ageGroup: "elem_low",
+                ageLabel: "만 6세 ~ 18세",
+                hours: "평일 11:00 ~ 20:00",
+                timeCategory: "afterschool",
+                cost: "전액 무료",
+                meal: "석식 무료 급식",
+                teachers: 4,
+                programs: ["학습 보충", "오케스트라", "석식 제공"],
+                mapPos: { top: "20%", left: "48%" },
+                rating: 4.7,
+                reviews: [
+                    { id: 104, author: "석현이모", text: "아이 학습 지도까지 세심하게 살펴주십니다.", stars: 5 }
+                ]
+            },
+            {
+                id: 4,
+                name: "참샘마을지역아동센터",
+                type: "child_center",
+                typeLabel: "지역아동센터",
+                district: "가곡동",
+                districtLabel: "가곡동 / 원가곡",
+                address: "전라남도 순천시 고지1길 57",
+                seats: 3,
+                maxSeats: 20,
+                ageGroup: "elem_high",
+                ageLabel: "만 6세 ~ 18세",
+                hours: "평일 12:00 ~ 20:00",
+                timeCategory: "afterschool",
+                cost: "전액 무료",
+                meal: "간식 및 석식 제공",
+                teachers: 3,
+                programs: ["독서 지도", "전래 놀이", "야외 체험"],
+                mapPos: { top: "30%", left: "32%" },
+                rating: 5.0,
+                reviews: [
+                    { id: 105, author: "가곡참샘", text: "마을 공동체 분위기라 아이가 매우 좋아해요.", stars: 5 }
+                ]
+            },
+            {
+                id: 5,
+                name: "깨복쟁이지역아동센터",
+                type: "child_center",
+                typeLabel: "지역아동센터",
+                district: "가곡동",
+                districtLabel: "가곡동 / 원가곡",
+                address: "전라남도 순천시 가곡3길 11",
+                seats: 1,
+                maxSeats: 22,
+                ageGroup: "elem_low",
+                ageLabel: "만 6세 ~ 15세",
+                hours: "평일 11:00 ~ 19:30",
+                timeCategory: "afterschool",
+                cost: "전액 무료",
+                meal: "영양 간식 제공",
+                teachers: 3,
+                programs: ["원예 체험", "컴퓨터 기초", "보드게임"],
+                mapPos: { top: "28%", left: "41%" },
+                rating: 4.6,
+                reviews: []
+            },
+            {
+                id: 6,
+                name: "삼산지역아동센터",
+                type: "child_center",
+                typeLabel: "지역아동센터",
+                district: "용당동",
+                districtLabel: "용당동 / 삼산",
+                address: "전라남도 순천시 용당초등길 33-17",
+                seats: 2,
+                maxSeats: 25,
+                ageGroup: "elem_low",
+                ageLabel: "만 6세 ~ 18세",
+                hours: "평일 10:00 ~ 19:00",
+                timeCategory: "afterschool",
+                cost: "전액 무료",
+                meal: "석식 무료 급식",
+                teachers: 4,
+                programs: ["용당초 등하원 연계", "수학 보충", "체육 활동"],
+                mapPos: { top: "38%", left: "45%" },
+                rating: 4.8,
+                reviews: []
+            },
+            {
+                id: 7,
+                name: "용당지역아동센터",
+                type: "child_center",
+                typeLabel: "지역아동센터",
+                district: "용당동",
+                districtLabel: "용당동 / 삼산",
+                address: "전라남도 순천시 용당초등길 57",
+                seats: 0,
+                maxSeats: 30,
+                ageGroup: "elem_high",
+                ageLabel: "만 6세 ~ 18세",
+                hours: "평일 11:00 ~ 20:00",
+                timeCategory: "emergency",
+                cost: "전액 무료",
+                meal: "석식 무료 제공",
+                teachers: 4,
+                programs: ["야간 돌봄", "수학 기초", "미술 교실"],
+                mapPos: { top: "40%", left: "49%" },
+                rating: 4.7,
+                reviews: []
+            },
+            {
+                id: 8,
+                name: "조곡지역아동센터",
+                type: "child_center",
+                typeLabel: "지역아동센터",
+                district: "조곡동",
+                districtLabel: "조곡동 / 순천역",
+                address: "전라남도 순천시 자경1길 10-11",
+                seats: 2,
+                maxSeats: 20,
+                ageGroup: "elem_low",
+                ageLabel: "만 6세 ~ 15세",
+                hours: "평일 12:00 ~ 20:00",
+                timeCategory: "afterschool",
+                cost: "전액 무료",
+                meal: "간식 제공",
+                teachers: 3,
+                programs: ["기적의도서관 독서 연계", "창의 하모니카"],
+                mapPos: { top: "52%", left: "52%" },
+                rating: 4.9,
+                reviews: []
+            },
+            {
+                id: 9,
+                name: "동순천지역아동센터",
+                type: "child_center",
+                typeLabel: "지역아동센터",
+                district: "용당동",
+                districtLabel: "용당동 / 삼산",
+                address: "전라남도 순천시 용당둑길 161",
+                seats: 1,
+                maxSeats: 24,
+                ageGroup: "elem_low",
+                ageLabel: "만 6세 ~ 18세",
+                hours: "평일 11:00 ~ 19:00",
+                timeCategory: "afterschool",
+                cost: "전액 무료",
+                meal: "석식 무료 급식",
+                teachers: 3,
+                programs: ["동천 생태 체험", "수학 기초"],
+                mapPos: { top: "35%", left: "55%" },
+                rating: 4.5,
+                reviews: []
+            },
+            {
+                id: 10,
+                name: "덕연지역아동센터",
+                type: "child_center",
+                typeLabel: "지역아동센터",
+                district: "생목동",
+                districtLabel: "생목동 / 덕연",
+                address: "전라남도 순천시 생목동 44-3",
+                seats: 2,
+                maxSeats: 25,
+                ageGroup: "elem_high",
+                ageLabel: "만 6세 ~ 18세",
+                hours: "평일 10:00 ~ 20:00",
+                timeCategory: "emergency",
+                cost: "전액 무료",
+                meal: "석식 무료 급식",
+                teachers: 4,
+                programs: ["영어 기초", "바이올린 교실", "야간 돌봄"],
+                mapPos: { top: "60%", left: "62%" },
+                rating: 4.8,
+                reviews: []
+            },
+            {
+                id: 11,
+                name: "순천만지역아동센터",
+                type: "child_center",
+                typeLabel: "지역아동센터",
+                district: "생목동",
+                districtLabel: "생목동 / 덕연",
+                address: "전라남도 순천시 안산길 20",
+                seats: 0,
+                maxSeats: 20,
+                ageGroup: "elem_low",
+                ageLabel: "만 6세 ~ 15세",
+                hours: "평일 12:00 ~ 19:00",
+                timeCategory: "afterschool",
+                cost: "전액 무료",
+                meal: "영양 간식 제공",
+                teachers: 3,
+                programs: ["생태 습지 체험", "그림책 읽기"],
+                mapPos: { top: "65%", left: "58%" },
+                rating: 5.0,
+                reviews: []
+            },
+            {
+                id: 12,
+                name: "연향지역아동센터",
+                type: "child_center",
+                typeLabel: "지역아동센터",
+                district: "연향동",
+                districtLabel: "연향동 / 배들",
+                address: "전라남도 순천시 연향2로 14-1",
+                seats: 1,
+                maxSeats: 28,
+                ageGroup: "elem_low",
+                ageLabel: "만 6세 ~ 18세",
+                hours: "평일 10:00 ~ 19:00",
+                timeCategory: "afterschool",
+                cost: "전액 무료",
+                meal: "간식 및 석식 제공",
+                teachers: 4,
+                programs: ["연향초 등하원 연계", "보드게임", "코딩"],
+                mapPos: { top: "58%", left: "68%" },
+                rating: 4.7,
+                reviews: []
+            },
+            {
+                id: 13,
+                name: "인제지역아동센터",
+                type: "child_center",
+                typeLabel: "지역아동센터",
+                district: "조곡동",
+                districtLabel: "조곡동 / 순천역",
+                address: "전라남도 순천시 상인제1길 45",
+                seats: 1,
+                maxSeats: 19,
+                ageGroup: "elem_low",
+                ageLabel: "만 6세 ~ 15세",
+                hours: "평일 11:00 ~ 19:30",
+                timeCategory: "afterschool",
+                cost: "전액 무료",
+                meal: "영양 간식",
+                teachers: 3,
+                programs: ["수학 가이드", "창의 미술"],
+                mapPos: { top: "55%", left: "48%" },
+                rating: 4.6,
+                reviews: []
+            },
+            {
+                id: 14,
+                name: "배들지역아동센터",
+                type: "child_center",
+                typeLabel: "지역아동센터",
+                district: "연향동",
+                districtLabel: "연향동 / 배들",
+                address: "전라남도 순천시 배들이길 32",
+                seats: 0,
+                maxSeats: 25,
+                ageGroup: "elem_high",
+                ageLabel: "만 6세 ~ 18세",
+                hours: "평일 11:00 ~ 20:00",
+                timeCategory: "emergency",
+                cost: "전액 무료",
+                meal: "석식 무료 급식",
+                teachers: 4,
+                programs: ["야간 안심 돌봄", "영어 동화"],
+                mapPos: { top: "62%", left: "70%" },
+                rating: 4.8,
+                reviews: []
+            },
+            {
+                id: 15,
+                name: "우지역아동센터",
+                type: "child_center",
+                typeLabel: "지역아동센터",
+                district: "산단",
+                districtLabel: "산단 / 서면",
+                address: "전라남도 순천시 산단2길 55",
+                seats: 2,
+                maxSeats: 22,
+                ageGroup: "elem_low",
+                ageLabel: "만 6세 ~ 15세",
+                hours: "평일 10:00 ~ 19:00",
+                timeCategory: "afterschool",
+                cost: "전액 무료",
+                meal: "간식 및 석식 제공",
+                teachers: 3,
+                programs: ["서면 산단 연계", "자유 놀이"],
+                mapPos: { top: "18%", left: "28%" },
+                rating: 4.9,
+                reviews: []
+            },
+            {
+                id: 16,
+                name: "덕연 이웃품앗이 돌봄터",
+                type: "coop",
+                typeLabel: "이웃 품앗이",
+                district: "생목동",
+                districtLabel: "생목동 / 덕연",
+                address: "전라남도 순천시 덕연동 주민센터 인근",
+                seats: 2,
+                maxSeats: 10,
+                ageGroup: "infant",
+                ageLabel: "만 0세 ~ 9세 (영유아/초등저)",
+                hours: "상시 협의 (주말/긴급 돌봄)",
+                timeCategory: "weekend",
+                cost: "무료 (품앗이 시간 나눔)",
+                meal: "자율 홈메이드 간식",
+                teachers: 2,
+                programs: ["동네 놀이터 야외 활동", "동화책 나눔", "주말 품앗이"],
+                mapPos: { top: "63%", left: "64%" },
+                rating: 5.0,
+                reviews: [
+                    { id: 106, author: "덕연동육아맘", text: "이웃 이모가 봐주시니까 아이가 집처럼 너무 편해해요.", stars: 5 }
+                ]
+            }
+        ];
+
+        // Active State Data
+        let careCenters = [];
+        let coopGroupsData = [
+            {
+                id: 201,
+                title: "가곡동 양우내안애 초등1학년 등하원 & 거실 돌봄",
+                location: "가곡동 양우내안애 아파트 102동",
+                target: "초등 1학년 (8세)",
+                members: "3명 참여 중 (정원 5명)",
+                desc: "주중 오후 1시~4시 사이 교대로 아이들 등하원 및 거실 돌봄을 함께 나눕니다."
+            },
+            {
+                id: 202,
+                title: "신대지구 주말 긴급 아이품앗이 모임",
+                location: "신대지구 중흥 3단지 놀이터",
+                target: "유치원~초등저 (5~8세)",
+                members: "4명 참여 중 (정원 6명)",
+                desc: "토요일 주말 급한 볼일이 생겼을 때 서로 품앗이로 아이를 봐주는 자율 모임입니다."
+            }
+        ];
+
+        let alertHistoryData = [
+            {
+                id: 1,
+                title: "양우내안애 다함께돌봄센터 긴급 빈자리 1석 추가!",
+                time: "5분 전",
+                content: "관심 등록 지역 [가곡동] 센터에 취소 자리가 발생했습니다. 바로 신청해보세요.",
+                type: "seat"
+            },
+            {
+                id: 2,
+                title: "향림지역아동센터 대기 순번 안내",
+                time: "1시간 전",
+                content: "대기 신청하신 [김민준] 아동의 순번이 '대기 2번 -> 대기 1번'으로 변경되었습니다.",
+                type: "queue"
+            },
+            {
+                id: 3,
+                title: "아이 프로필 저장 및 스마트 매칭 연동 완료",
+                time: "오늘 오전",
+                content: "김민준 (초등저학년 / 가곡동) 프로필 조건으로 맞춤 추천이 자동 세팅되었습니다.",
+                type: "system"
+            }
+        ];
+
+        // Current View Mode (list vs map)
+        let currentViewMode = 'list';
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCareCentersFromStorage();
+            loadChildProfile();
+            runSmartMatching();
+            renderCentersList();
+            renderCoopGroupCards();
+            renderAlertHistory();
+        });
+
+        // LocalStorage Helpers for Centers & Reviews
+        function loadCareCentersFromStorage() {
+            const saved = localStorage.getItem('dolbom_centers_data');
+            if (saved) {
+                try {
+                    careCenters = JSON.parse(saved);
+                } catch(e) {
+                    careCenters = [...initialCenters];
+                }
+            } else {
+                careCenters = [...initialCenters];
+                saveCareCentersToStorage();
+            }
+        }
+
+        function saveCareCentersToStorage() {
+            localStorage.setItem('dolbom_centers_data', JSON.stringify(careCenters));
+        }
+
+        // Tab Switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById(`tab-${tabName}`);
+            if (target) target.classList.remove('hidden');
+
+            // Desktop tab styling
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('text-pinkTheme-600', 'bg-white', 'shadow-sm');
+                btn.classList.add('text-gray-600');
+            });
+            const navBtn = document.getElementById(`nav-${tabName}`);
+            if (navBtn) {
+                navBtn.classList.add('text-pinkTheme-600', 'bg-white', 'shadow-sm');
+                navBtn.classList.remove('text-gray-600');
+            }
+
+            // Mobile nav styling
+            const tabs = ['home', 'centers', 'coop', 'alerts', 'profile'];
+            tabs.forEach(t => {
+                const mbtn = document.getElementById(`mnav-${t}`);
+                if (mbtn) {
+                    if (t === tabName) {
+                        mbtn.className = "flex flex-col items-center text-pinkTheme-500 font-bold text-[10px]";
+                    } else {
+                        mbtn.className = "flex flex-col items-center text-gray-400 text-[10px]";
+                    }
+                }
+            });
+
+            if (tabName === 'centers') {
+                renderCentersList();
+            }
+        }
+
+        // View Mode Switcher for Center Tab (List vs Map)
+        function setViewMode(mode) {
+            currentViewMode = mode;
+            const btnList = document.getElementById('btnViewList');
+            const btnMap = document.getElementById('btnViewMap');
+            const listCont = document.getElementById('viewListContainer');
+            const mapCont = document.getElementById('viewMapContainer');
+
+            if (mode === 'list') {
+                btnList.className = "flex-1 sm:flex-none px-4 py-1.5 rounded-xl text-xs font-bold bg-white text-pinkTheme-600 shadow-sm";
+                btnMap.className = "flex-1 sm:flex-none px-4 py-1.5 rounded-xl text-xs font-bold text-gray-600 hover:text-pinkTheme-500";
+                listCont.classList.remove('hidden');
+                mapCont.classList.add('hidden');
+            } else {
+                btnMap.className = "flex-1 sm:flex-none px-4 py-1.5 rounded-xl text-xs font-bold bg-white text-pinkTheme-600 shadow-sm";
+                btnList.className = "flex-1 sm:flex-none px-4 py-1.5 rounded-xl text-xs font-bold text-gray-600 hover:text-pinkTheme-500";
+                mapCont.classList.remove('hidden');
+                listCont.classList.add('hidden');
+                renderMapMarkers();
+            }
+        }
+
+        // CORE FEATURE 1: SMART MATCHING LOGIC
+        function runSmartMatching() {
+            const age = document.getElementById('wizAgeSelect').value;
+            const district = document.getElementById('wizDistrictSelect').value;
+            const time = document.getElementById('wizTimeSelect').value;
+
+            const matches = careCenters.filter(c => {
+                const matchAge = (age === 'all' || c.ageGroup === age || c.ageGroup === 'elem_low');
+                const matchDistrict = (district === 'all' || c.district === district);
+                const matchTime = (time === 'all' || c.timeCategory === time || c.timeCategory === 'afterschool');
+                return matchAge && matchDistrict && matchTime;
+            });
+
+            const container = document.getElementById('wizResultContainer');
+            document.getElementById('wizResultCount').textContent = `${matches.length}개 기관/품앗이 맞춤 추천됨`;
+
+            // Calculate total seats available today
+            const totalSeatsCount = careCenters.reduce((sum, c) => sum + c.seats, 0);
+            document.getElementById('summaryTotalSeats').textContent = `${totalSeatsCount}석`;
+
+            if (matches.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full bg-pinkTheme-50/60 p-6 rounded-2xl text-center border border-dashed border-pinkTheme-200">
+                        <i class="fa-solid fa-heart-crack text-pinkTheme-300 text-3xl mb-1"></i>
+                        <p class="text-xs font-bold text-gray-700">선택 조건에 맞는 빈자리가 없습니다.</p>
+                        <p class="text-[11px] text-gray-400 mt-1">지역 조건을 '순천시 전체'로 변경하시면 더 넓은 범위의 기관을 확인하실 수 있습니다.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = matches.map(item => `
+                <div class="bg-gradient-to-b from-white to-pinkTheme-50/30 p-4 rounded-2xl border border-pinkTheme-200 cute-shadow flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between gap-1 mb-1.5">
+                            <span class="bg-pinkTheme-100 text-pinkTheme-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                ${item.typeLabel} · ${item.district}
+                            </span>
+                            <span class="text-xs font-extrabold ${item.seats > 0 ? 'text-emerald-600' : 'text-rose-500'}">
+                                ${item.seats > 0 ? `빈자리 ${item.seats}석` : '마감 (대기가능)'}
+                            </span>
+                        </div>
+                        <h4 class="font-bold text-sm text-gray-800 hover:text-pinkTheme-600 cursor-pointer" onclick="openCenterDetail(${item.id})">
+                            ${item.name}
+                        </h4>
+                        <p class="text-[11px] text-gray-500 mt-1 truncate"><i class="fa-solid fa-location-dot text-pinkTheme-400 mr-1"></i>${item.address}</p>
+                        
+                        <div class="text-[11px] text-gray-600 mt-2 space-y-1 bg-white/80 p-2 rounded-xl border border-pinkTheme-100">
+                            <div><i class="fa-solid fa-clock text-pinkTheme-400 w-3.5"></i> ${item.hours}</div>
+                            <div><i class="fa-solid fa-won-sign text-pinkTheme-400 w-3.5"></i> ${item.cost}</div>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 mt-2 flex gap-2 border-t border-pinkTheme-100">
+                        <button onclick="openCenterDetail(${item.id})" class="w-1/3 border border-pinkTheme-200 text-pinkTheme-600 text-xs font-bold py-1.5 rounded-xl hover:bg-pinkTheme-50">
+                            상세
+                        </button>
+                        <button onclick="openApplyModal(${item.id})" class="w-2/3 ${item.seats > 0 ? 'bg-pinkTheme-500 hover:bg-pinkTheme-600' : 'bg-gray-700 hover:bg-gray-800'} text-white text-xs font-bold py-1.5 rounded-xl transition shadow">
+                            ${item.seats > 0 ? '즉시 신청하기' : '대기 등록'}
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render List & Search Filtering for Tab 2
+        function renderCentersList() {
+            const container = document.getElementById('viewListContainer');
+            const searchVal = document.getElementById('centerSearchInput').value.toLowerCase();
+            const typeFilter = document.getElementById('typeFilterSelect').value;
+            const seatFilter = document.getElementById('seatFilterSelect').value;
+
+            const filtered = careCenters.filter(c => {
+                const matchSearch = c.name.toLowerCase().includes(searchVal) || c.address.toLowerCase().includes(searchVal);
+                const matchType = (typeFilter === 'all' || c.type === typeFilter);
+                const matchSeat = (seatFilter === 'all' || 
+                                   (seatFilter === 'available' && c.seats > 0) || 
+                                   (seatFilter === 'full' && c.seats === 0));
+                return matchSearch && matchType && matchSeat;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full bg-white p-8 rounded-3xl border border-pinkTheme-100 text-center text-gray-500 text-xs">
+                        검색 조건에 맞는 순천시 돌봄 기관이 없습니다.
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(item => `
+                <div class="bg-white p-4 sm:p-5 rounded-3xl border border-pinkTheme-100 cute-shadow flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="bg-pinkTheme-100 text-pinkTheme-600 text-[10px] font-bold px-2.5 py-0.5 rounded-full">${item.typeLabel}</span>
+                            <span class="text-xs font-bold text-amber-500"><i class="fa-solid fa-star mr-0.5"></i>${item.rating} (${item.reviews.length})</span>
+                        </div>
+                        <h3 class="font-bold text-base text-gray-800 mb-1 cursor-pointer hover:text-pinkTheme-500" onclick="openCenterDetail(${item.id})">${item.name}</h3>
+                        <p class="text-xs text-gray-500 mb-3"><i class="fa-solid fa-location-dot text-pinkTheme-400 mr-1"></i>${item.address}</p>
+
+                        <div class="bg-pinkTheme-50/40 p-3 rounded-2xl border border-pinkTheme-100/80 space-y-1.5 text-xs text-gray-700">
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">실시간 여유석:</span>
+                                <span class="font-bold ${item.seats > 0 ? 'text-emerald-600' : 'text-rose-500'}">${item.seats > 0 ? item.seats + '석 이용가능' : '마감 (대기 등록)'}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">운영시간:</span>
+                                <span class="font-semibold">${item.hours}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">이용비용:</span>
+                                <span class="font-semibold">${item.cost}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">급식/간식:</span>
+                                <span class="font-semibold">${item.meal}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 mt-3 border-t border-gray-100 flex gap-2">
+                        <button onclick="openCenterDetail(${item.id})" class="w-1/2 border border-pinkTheme-200 text-pinkTheme-600 font-bold text-xs py-2 rounded-xl hover:bg-pinkTheme-50">상세 & 후기</button>
+                        <button onclick="openApplyModal(${item.id})" class="w-1/2 ${item.seats > 0 ? 'bg-pinkTheme-500 hover:bg-pinkTheme-600' : 'bg-gray-700 hover:bg-gray-800'} text-white font-bold text-xs py-2 rounded-xl transition shadow">
+                            ${item.seats > 0 ? '즉시 돌봄 신청' : '대기 번호 받기'}
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            if (currentViewMode === 'map') {
+                renderMapMarkers();
+            }
+        }
+
+        function filterCentersList() {
+            renderCentersList();
+        }
+
+        // Render Visual Map Markers
+        function renderMapMarkers() {
+            const markersArea = document.getElementById('mapMarkersArea');
+            markersArea.innerHTML = careCenters.map(c => `
+                <div class="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group" style="top: ${c.mapPos.top}; left: ${c.mapPos.left};" onclick="openCenterDetail(${c.id})">
+                    <div class="bg-white border-2 ${c.seats > 0 ? 'border-pinkTheme-500 text-pinkTheme-600' : 'border-gray-400 text-gray-500'} px-2 py-1 rounded-xl shadow-md text-[10px] font-bold flex items-center gap-1 hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>${c.name.split(' ')[1] || c.name.slice(0,5)} (${c.seats}석)</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Modal: Center Details & Review CRUD
+        function openCenterDetail(id) {
+            const item = careCenters.find(c => c.id === id);
+            if (!item) return;
+
+            const modalContent = document.getElementById('modalDetailContent');
+            modalContent.innerHTML = `
+                <div class="space-y-4 text-xs">
+                    <div>
+                        <span class="bg-pinkTheme-100 text-pinkTheme-600 text-[11px] font-bold px-2.5 py-0.5 rounded-full inline-block mb-1.5">${item.typeLabel} · ${item.district}</span>
+                        <h3 class="text-lg font-bold text-gray-800">${item.name}</h3>
+                        <p class="text-gray-500 mt-0.5"><i class="fa-solid fa-location-dot text-pinkTheme-400 mr-1"></i>${item.address}</p>
+                    </div>
+
+                    <div class="bg-pinkTheme-50/60 p-3.5 rounded-2xl border border-pinkTheme-100 space-y-2">
+                        <div class="flex justify-between"><span class="text-gray-500">운영시간:</span> <span class="font-bold text-gray-800">${item.hours}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">대상연령:</span> <span class="font-bold text-gray-800">${item.ageLabel}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">이용비용:</span> <span class="font-bold text-gray-800">${item.cost}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">급식/간식:</span> <span class="font-bold text-gray-800">${item.meal}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">상주 교사:</span> <span class="font-bold text-gray-800">${item.teachers}명</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">주요 프로그램:</span> <span class="font-bold text-gray-800">${item.programs.join(', ')}</span></div>
+                    </div>
+
+                    <!-- Reviews Section -->
+                    <div>
+                        <h4 class="font-bold text-sm text-gray-800 mb-2 flex items-center justify-between">
+                            <span>학부모 실제 후기 (${item.reviews.length})</span>
+                            <span class="text-amber-500"><i class="fa-solid fa-star"></i> ${item.rating} / 5.0</span>
+                        </h4>
+                        
+                        <div class="space-y-2 max-h-36 overflow-y-auto mb-3" id="reviewContainer-${item.id}">
+                            ${item.reviews.length === 0 ? '<p class="text-gray-400 text-[11px] py-2 text-center">아직 등록된 후기가 없습니다. 첫 후기를 남겨보세요!</p>' : ''}
+                            ${item.reviews.map(r => `
+                                <div class="bg-gray-50 p-2.5 rounded-xl border border-gray-100 flex justify-between items-start">
+                                    <div>
+                                        <div class="flex items-center gap-2 font-bold text-gray-700 mb-0.5">
+                                            <span>${r.author} 학부모님</span>
+                                            <span class="text-amber-500 text-[11px]">★ ${r.stars}.0</span>
+                                        </div>
+                                        <p class="text-gray-600 leading-snug">${r.text}</p>
+                                    </div>
+                                    <button onclick="deleteReview(${item.id}, ${r.id})" class="text-gray-400 hover:text-rose-500 text-[10px] ml-2">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <!-- Add Review Input -->
+                        <div class="bg-pinkTheme-50/40 p-3 rounded-2xl border border-pinkTheme-100 space-y-2">
+                            <span class="font-bold text-gray-700 block text-[11px]">한 줄 후기 작성하기</span>
+                            <div class="flex gap-2">
+                                <input type="text" id="newReviewText-${item.id}" placeholder="선생님의 케어와 시설은 어땠나요?" class="flex-1 bg-white border border-pinkTheme-200 rounded-xl p-2 text-xs focus:outline-none">
+                                <button onclick="addReview(${item.id})" class="bg-pinkTheme-500 text-white font-bold px-3 py-2 rounded-xl text-xs hover:bg-pinkTheme-600 transition">
+                                    등록
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 flex gap-2">
+                        <button onclick="closeModal('centerDetailModal')" class="w-1/3 border border-gray-300 text-gray-600 font-bold py-2.5 rounded-xl">닫기</button>
+                        <button onclick="closeModal('centerDetailModal'); openApplyModal(${item.id});" class="w-2/3 bg-pinkTheme-500 hover:bg-pinkTheme-600 text-white font-bold py-2.5 rounded-xl shadow">
+                            ${item.seats > 0 ? '즉시 돌봄 신청' : '대기 등록하기'}
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('centerDetailModal').classList.remove('hidden');
+        }
+
+        // Add Review
+        function addReview(centerId) {
+            const input = document.getElementById(`newReviewText-${centerId}`);
+            const text = input.value.trim();
+            if (!text) return;
+
+            const center = careCenters.find(c => c.id === centerId);
+            if (center) {
+                center.reviews.unshift({
+                    id: Date.now(),
+                    author: "나 (순천맘)",
+                    text: text,
+                    stars: 5
+                });
+                saveCareCentersToStorage();
+                openCenterDetail(centerId);
+                renderCentersList();
+                showToast("소중한 한 줄 후기가 성공적으로 등록되었습니다!");
+            }
+        }
+
+        // Delete Review
+        function deleteReview(centerId, reviewId) {
+            const center = careCenters.find(c => c.id === centerId);
+            if (center) {
+                center.reviews = center.reviews.filter(r => r.id !== reviewId);
+                saveCareCentersToStorage();
+                openCenterDetail(centerId);
+                renderCentersList();
+                showToast("후기가 삭제되었습니다.");
+            }
+        }
+
+        // Apply & Waiting Register Modal
+        function openApplyModal(centerId) {
+            const center = careCenters.find(c => c.id === centerId);
+            if (!center) return;
+
+            const modalContent = document.getElementById('applyModalContent');
+            const savedProfile = getSavedProfile();
+
+            modalContent.innerHTML = `
+                <div class="space-y-4 text-xs">
+                    <div class="text-center">
+                        <span class="bg-pinkTheme-100 text-pinkTheme-600 text-[10px] font-bold px-2.5 py-0.5 rounded-full inline-block mb-1">
+                            ${center.seats > 0 ? '긴급 돌봄 즉시 신청' : '대기 순번 등록 신청'}
+                        </span>
+                        <h3 class="text-base font-bold text-gray-800">${center.name}</h3>
+                    </div>
+
+                    <div class="bg-pinkTheme-50/60 p-3.5 rounded-2xl border border-pinkTheme-100 space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">신청 아동:</span>
+                            <span class="font-bold text-gray-800">${savedProfile.name} (${savedProfile.school})</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">돌봄 이용 일시:</span>
+                            <span class="font-bold text-pinkTheme-600">오늘 긴급 (2026.10.29)</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">예상 돌봄 시간:</span>
+                            <span class="font-bold text-gray-800">13:00 ~ 18:00</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">보호자 비상 연락처</label>
+                        <input type="tel" value="010-1234-5678" class="w-full bg-pinkTheme-50/50 border border-pinkTheme-200 rounded-xl p-2.5 font-semibold">
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">전달사항 (식품 알레르기 등)</label>
+                        <textarea placeholder="선생님께 미리 전달할 사항이 있다면 적어주세요." class="w-full bg-pinkTheme-50/50 border border-pinkTheme-200 rounded-xl p-2.5" rows="2"></textarea>
+                    </div>
+
+                    <button onclick="confirmApplication(${center.id})" class="w-full bg-pinkTheme-500 hover:bg-pinkTheme-600 text-white font-bold py-3 rounded-xl transition shadow">
+                        ${center.seats > 0 ? '신청 완료 및 매칭 확인서 받기' : '대기 순번 등록 및 푸시 알림 신청'}
+                    </button>
+                </div>
+            `;
+            document.getElementById('applyModal').classList.remove('hidden');
+        }
+
+        function confirmApplication(centerId) {
+            const center = careCenters.find(c => c.id === centerId);
+            closeModal('applyModal');
+
+            if (center.seats > 0) {
+                center.seats -= 1;
+                saveCareCentersToStorage();
+
+                alertHistoryData.unshift({
+                    id: Date.now(),
+                    title: `[돌봄 매칭 완료] ${center.name}`,
+                    time: "방금 전",
+                    content: `[김민준] 아동의 긴급 돌봄 신청이 기관으로 전달되어 매칭 승인되었습니다.`,
+                    type: "approved"
+                });
+                showToast(`'${center.name}' 긴급 돌봄 신청이 완료되었습니다!`);
+            } else {
+                alertHistoryData.unshift({
+                    id: Date.now(),
+                    title: `[대기 등록 완료] ${center.name}`,
+                    time: "방금 전",
+                    content: `대기 1번으로 등록되었습니다. 취소 자리 발생 시 푸시 알림으로 가장 먼저 안내해드립니다.`,
+                    type: "queue"
+                });
+                showToast(`'${center.name}' 대기 1번으로 등록되었습니다.`);
+            }
+
+            runSmartMatching();
+            renderCentersList();
+            renderAlertHistory();
+            switchTab('alerts');
+        }
+
+        // Render Coop Group Cards for Tab 3
+        function renderCoopGroupCards() {
+            const container = document.getElementById('coopGroupContainer');
+            container.innerHTML = coopGroupsData.map(g => `
+                <div class="bg-white p-4 sm:p-5 rounded-3xl border border-pinkTheme-100 cute-shadow flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="bg-pinkTheme-100 text-pinkTheme-600 text-[10px] font-bold px-2.5 py-0.5 rounded-full">순천 이웃 품앗이</span>
+                            <span class="text-xs font-bold text-emerald-600"><i class="fa-solid fa-users mr-1"></i>${g.members}</span>
+                        </div>
+                        <h3 class="font-bold text-base text-gray-800 mb-1">${g.title}</h3>
+                        <p class="text-xs text-gray-500 mb-2"><i class="fa-solid fa-location-dot text-pinkTheme-400 mr-1"></i>${g.location}</p>
+                        <p class="text-xs text-gray-600 bg-pinkTheme-50/50 p-3 rounded-2xl border border-pinkTheme-100/60 mb-3">${g.desc}</p>
+                    </div>
+                    <button onclick="joinCoopGroup('${g.title}')" class="w-full bg-pinkTheme-50 text-pinkTheme-600 hover:bg-pinkTheme-500 hover:text-white font-bold text-xs py-2.5 rounded-xl border border-pinkTheme-200 transition">
+                        이웃 품앗이 모임 참여 신청
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function openCoopCreateModal() {
+            document.getElementById('coopCreateModal').classList.remove('hidden');
+        }
+
+        function submitNewCoop(e) {
+            e.preventDefault();
+            const title = document.getElementById('coopTitleInput').value;
+            const loc = document.getElementById('coopLocInput').value;
+            const age = document.getElementById('coopAgeInput').value;
+            const desc = document.getElementById('coopDescInput').value;
+
+            coopGroupsData.unshift({
+                id: Date.now(),
+                title: title,
+                location: loc,
+                target: age,
+                members: "1명 (개설자)",
+                desc: desc
+            });
+
+            renderCoopGroupCards();
+            closeModal('coopCreateModal');
+            showToast("새 이웃 품앗이 모임이 성공적으로 개설되었습니다!");
+            e.target.reset();
+        }
+
+        function joinCoopGroup(title) {
+            showToast(`'${title}' 모임 참여 신청이 완료되었습니다. 호스트 이웃 확인 후 연락드립니다.`);
+        }
+
+        // Render Alert Center
+        function renderAlertHistory() {
+            const container = document.getElementById('alertHistoryList');
+            const badge = document.getElementById('badgeAlertCount');
+            const mBadge = document.getElementById('mBadgeAlertCount');
+
+            badge.textContent = alertHistoryData.length;
+            mBadge.textContent = alertHistoryData.length;
+
+            if (alertHistoryData.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-400 text-xs">
+                        수신된 알림 소식이 없습니다.
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = alertHistoryData.map(a => `
+                <div class="bg-pinkTheme-50/40 p-3.5 rounded-2xl border border-pinkTheme-100 flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-pinkTheme-100 text-pinkTheme-500 flex items-center justify-center font-bold text-sm flex-shrink-0 mt-0.5">
+                        <i class="fa-solid ${a.type === 'seat' ? 'fa-bolt' : a.type === 'approved' ? 'fa-circle-check' : 'fa-clock'}"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center mb-0.5">
+                            <h4 class="font-bold text-xs text-gray-800">${a.title}</h4>
+                            <span class="text-[10px] text-gray-400">${a.time}</span>
+                        </div>
+                        <p class="text-xs text-gray-600 leading-relaxed">${a.content}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function clearAllNotifications() {
+            alertHistoryData = [];
+            renderAlertHistory();
+        }
+
+        // Child Profile LocalStorage Handlers
+        function saveChildProfile(e) {
+            e.preventDefault();
+            const prof = {
+                name: document.getElementById('profName').value,
+                ageGroup: document.getElementById('profAgeGroup').value,
+                school: document.getElementById('profSchool').value,
+                district: document.getElementById('profDistrict').value,
+                timeGroup: document.getElementById('profTimeGroup').value
+            };
+            localStorage.setItem('dolbom_child_profile', JSON.stringify(prof));
+
+            // Sync wizard select controls
+            document.getElementById('wizAgeSelect').value = prof.ageGroup;
+            document.getElementById('wizDistrictSelect').value = prof.district;
+            document.getElementById('wizTimeSelect').value = prof.timeGroup;
+
+            document.getElementById('profileSyncText').innerHTML = 
+                `<i class="fa-solid fa-user-check text-pinkTheme-500 mr-1"></i>내 아이 프로필(<strong>${prof.name} / ${prof.school} / ${prof.district}</strong>) 정보가 자동 반영되어 있습니다.`;
+
+            runSmartMatching();
+            showToast("아이 프로필 정보가 안심 저장되었습니다!");
+            switchTab('home');
+        }
+
+        function getSavedProfile() {
+            const saved = localStorage.getItem('dolbom_child_profile');
+            if (saved) {
+                try {
+                    return JSON.parse(saved);
+                } catch(e) {}
+            }
+            return {
+                name: "김민준",
+                ageGroup: "elem_low",
+                school: "순천 가곡초등학교",
+                district: "가곡동",
+                timeGroup: "afterschool"
+            };
+        }
+
+        function loadChildProfile() {
+            const prof = getSavedProfile();
+            document.getElementById('profName').value = prof.name;
+            document.getElementById('profAgeGroup').value = prof.ageGroup;
+            document.getElementById('profSchool').value = prof.school;
+            document.getElementById('profDistrict').value = prof.district;
+            document.getElementById('profTimeGroup').value = prof.timeGroup;
+
+            document.getElementById('wizAgeSelect').value = prof.ageGroup;
+            document.getElementById('wizDistrictSelect').value = prof.district;
+            document.getElementById('wizTimeSelect').value = prof.timeGroup;
+        }
+
+        // Simulated Push Notification Helper
+        function triggerSimulatedAlert() {
+            const sampleMsgs = [
+                "집 근처 순천시 양우내안애 센터에 긴급 빈자리 1석 추가!",
+                "신대 다함께돌봄센터 대기 1번 순번이 도달했습니다.",
+                "가곡동 이웃 품앗이 모임에 신규 학부모님이 참여했습니다."
+            ];
+            const randomMsg = sampleMsgs[Math.floor(Math.random() * sampleMsgs.length)];
+            
+            alertHistoryData.unshift({
+                id: Date.now(),
+                title: "실시간 테스트 알림",
+                time: "방금 전",
+                content: randomMsg,
+                type: "seat"
+            });
+
+            renderAlertHistory();
+            showToast(randomMsg);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('toastMessage').textContent = msg;
+            toast.classList.remove('translate-y-[-160%]');
+            setTimeout(() => { hideToast(); }, 4000);
+        }
+
+        function hideToast() {
+            document.getElementById('toastNotification').classList.add('translate-y-[-160%]');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
